@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: 1БКС24027
+
+greeting:
+  text: "Hello, RBPO 2026!"
