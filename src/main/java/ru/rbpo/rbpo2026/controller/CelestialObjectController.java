@@ -3,6 +3,7 @@ package ru.rbpo.rbpo2026.controller;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import ru.rbpo.rbpo2026.entity.CelestialObject;
 import ru.rbpo.rbpo2026.service.CelestialObjectService;
@@ -30,12 +31,14 @@ public class CelestialObjectController {
         return ResponseEntity.ok(object);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<CelestialObject> create(@RequestBody CelestialObject object) {
         CelestialObject created = celestialObjectService.create(object);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{id}")
     public ResponseEntity<CelestialObject> update(@PathVariable Long id, @RequestBody CelestialObject changes) {
         CelestialObject object = celestialObjectService.update(id, changes);
@@ -45,6 +48,7 @@ public class CelestialObjectController {
         return ResponseEntity.ok(object);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         if (!celestialObjectService.delete(id)) {

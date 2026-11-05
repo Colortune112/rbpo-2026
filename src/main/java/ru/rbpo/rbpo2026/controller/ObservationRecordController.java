@@ -3,6 +3,7 @@ package ru.rbpo.rbpo2026.controller;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import ru.rbpo.rbpo2026.entity.ObservationRecord;
 import ru.rbpo.rbpo2026.service.ObservationRecordService;
@@ -30,12 +31,14 @@ public class ObservationRecordController {
         return ResponseEntity.ok(record);
     }
 
+    @PreAuthorize("hasRole('ADMIN') or @accessChecker.isSessionOwner(#record.sessionId)")
     @PostMapping
     public ResponseEntity<ObservationRecord> create(@RequestBody ObservationRecord record) {
         ObservationRecord created = observationRecordService.create(record);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
+    @PreAuthorize("hasRole('ADMIN') or @accessChecker.isRecordOwner(#id)")
     @PatchMapping("/{id}")
     public ResponseEntity<ObservationRecord> update(@PathVariable Long id, @RequestBody ObservationRecord changes) {
         ObservationRecord record = observationRecordService.update(id, changes);
@@ -45,6 +48,7 @@ public class ObservationRecordController {
         return ResponseEntity.ok(record);
     }
 
+    @PreAuthorize("hasRole('ADMIN') or @accessChecker.isRecordOwner(#id)")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         if (!observationRecordService.delete(id)) {

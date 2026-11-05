@@ -3,6 +3,7 @@ package ru.rbpo.rbpo2026.controller;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import ru.rbpo.rbpo2026.entity.Telescope;
 import ru.rbpo.rbpo2026.service.TelescopeService;
@@ -30,12 +31,14 @@ public class TelescopeController {
         return ResponseEntity.ok(telescope);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<Telescope> create(@RequestBody Telescope telescope) {
         Telescope created = telescopeService.create(telescope);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{id}")
     public ResponseEntity<Telescope> update(@PathVariable Long id, @RequestBody Telescope changes) {
         Telescope telescope = telescopeService.update(id, changes);
@@ -45,6 +48,7 @@ public class TelescopeController {
         return ResponseEntity.ok(telescope);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         if (!telescopeService.delete(id)) {
@@ -53,11 +57,13 @@ public class TelescopeController {
         return ResponseEntity.noContent().build();
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/{id}/maintenance")
     public Telescope sendToMaintenance(@PathVariable Long id) {
         return telescopeService.sendToMaintenance(id);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/{id}/return")
     public Telescope returnFromMaintenance(@PathVariable Long id) {
         return telescopeService.returnFromMaintenance(id);
