@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import ru.rbpo.rbpo2026.entity.ObservationRecord;
+import ru.rbpo.rbpo2026.entity.ObservationSession;
 import ru.rbpo.rbpo2026.repository.ObservationRecordRepository;
 import ru.rbpo.rbpo2026.repository.ObservationSessionRepository;
 
@@ -23,45 +24,51 @@ public class ObservationRecordService {
     }
 
     public ObservationRecord getById(Long id) {
-        return recordRepository.findById(id);
+        return recordRepository.findById(id).orElse(null);
     }
 
+    // Запись можно добавить только в идущий сеанс; время ставит сервер
     public ObservationRecord create(ObservationRecord record) {
-        checkSession(record.getSessionId());
+        if (record.getSessionId() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Сеанс наблюдения не найден");
+        }
+        ObservationSession session = sessionRepository.findById(record.getSessionId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Сеанс наблюдения не найден"));
+        if (!session.getStatus().equals("IN_PROGRESS")) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Записи можно добавлять только в идущий сеанс");
+        }
+        checkQuality(record.getQuality());
         record.setId(null);
         record.setTime(LocalDateTime.now());
         return recordRepository.save(record);
     }
 
     public ObservationRecord update(Long id, ObservationRecord changes) {
-        ObservationRecord record = recordRepository.findById(id);
+        ObservationRecord record = recordRepository.findById(id).orElse(null);
         if (record == null) {
             return null;
-        }
-        if (changes.getSessionId() != null) {
-            checkSession(changes.getSessionId());
-            record.setSessionId(changes.getSessionId());
         }
         if (changes.getDescription() != null) {
             record.setDescription(changes.getDescription());
         }
         if (changes.getQuality() != null) {
+            checkQuality(changes.getQuality());
             record.setQuality(changes.getQuality());
         }
         return recordRepository.save(record);
     }
 
     public boolean delete(Long id) {
-        if (recordRepository.findById(id) == null) {
+        if (!recordRepository.existsById(id)) {
             return false;
         }
         recordRepository.deleteById(id);
         return true;
     }
 
-    private void checkSession(Long id) {
-        if (id == null || sessionRepository.findById(id) == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Сеанс наблюдения не найден");
+    private void checkQuality(Integer quality) {
+        if (quality == null || quality < 1 || quality > 5) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Оценка качества должна быть от 1 до 5");
         }
     }
 }

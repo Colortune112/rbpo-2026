@@ -1,12 +1,21 @@
 package ru.rbpo.rbpo2026.entity;
 
-import lombok.Data;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
-@Data
+@Entity
+@Table(name = "observation_sessions", schema = "app")
+@Getter
+@Setter
+@NoArgsConstructor
 public class ObservationSession {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private Long celestialObjectId;
     private Long telescopeId;

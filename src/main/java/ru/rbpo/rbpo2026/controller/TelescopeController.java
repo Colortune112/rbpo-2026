@@ -52,4 +52,14 @@ public class TelescopeController {
         }
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/{id}/maintenance")
+    public Telescope sendToMaintenance(@PathVariable Long id) {
+        return telescopeService.sendToMaintenance(id);
+    }
+
+    @PostMapping("/{id}/return")
+    public Telescope returnFromMaintenance(@PathVariable Long id) {
+        return telescopeService.returnFromMaintenance(id);
+    }
 }

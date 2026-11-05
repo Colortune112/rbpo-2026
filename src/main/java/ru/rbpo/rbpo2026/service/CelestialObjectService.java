@@ -1,8 +1,11 @@
 package ru.rbpo.rbpo2026.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 import ru.rbpo.rbpo2026.entity.CelestialObject;
+import ru.rbpo.rbpo2026.repository.ObservationSessionRepository;
 import ru.rbpo.rbpo2026.repository.CelestialObjectRepository;
 
 import java.util.List;
@@ -12,14 +15,14 @@ import java.util.List;
 public class CelestialObjectService {
 
     private final CelestialObjectRepository celestialObjectRepository;
-    private final ObservationSessionService observationSessionService;
+    private final ObservationSessionRepository sessionRepository;
 
     public List<CelestialObject> getAll() {
         return celestialObjectRepository.findAll();
     }
 
     public CelestialObject getById(Long id) {
-        return celestialObjectRepository.findById(id);
+        return celestialObjectRepository.findById(id).orElse(null);
     }
 
     public CelestialObject create(CelestialObject object) {
@@ -28,7 +31,7 @@ public class CelestialObjectService {
     }
 
     public CelestialObject update(Long id, CelestialObject changes) {
-        CelestialObject object = celestialObjectRepository.findById(id);
+        CelestialObject object = celestialObjectRepository.findById(id).orElse(null);
         if (object == null) {
             return null;
         }
@@ -45,10 +48,12 @@ public class CelestialObjectService {
     }
 
     public boolean delete(Long id) {
-        if (celestialObjectRepository.findById(id) == null) {
+        if (!celestialObjectRepository.existsById(id)) {
             return false;
         }
-        observationSessionService.deleteByCelestialObjectId(id);
+        if (sessionRepository.existsByCelestialObjectIdAndStatus(id, "IN_PROGRESS")) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Этот объект сейчас наблюдают");
+        }
         celestialObjectRepository.deleteById(id);
         return true;
     }

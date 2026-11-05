@@ -1,8 +1,11 @@
 package ru.rbpo.rbpo2026.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 import ru.rbpo.rbpo2026.entity.User;
+import ru.rbpo.rbpo2026.repository.ObservationSessionRepository;
 import ru.rbpo.rbpo2026.repository.UserRepository;
 
 import java.util.List;
@@ -12,14 +15,14 @@ import java.util.List;
 public class UserService {
 
     private final UserRepository userRepository;
-    private final ObservationSessionService observationSessionService;
+    private final ObservationSessionRepository sessionRepository;
 
     public List<User> getAll() {
         return userRepository.findAll();
     }
 
     public User getById(Long id) {
-        return userRepository.findById(id);
+        return userRepository.findById(id).orElse(null);
     }
 
     public User create(User user) {
@@ -28,7 +31,7 @@ public class UserService {
     }
 
     public User update(Long id, User changes) {
-        User user = userRepository.findById(id);
+        User user = userRepository.findById(id).orElse(null);
         if (user == null) {
             return null;
         }
@@ -42,10 +45,12 @@ public class UserService {
     }
 
     public boolean delete(Long id) {
-        if (userRepository.findById(id) == null) {
+        if (!userRepository.existsById(id)) {
             return false;
         }
-        observationSessionService.deleteByObserverId(id);
+        if (sessionRepository.existsByObserverIdAndStatus(id, "IN_PROGRESS")) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "У пользователя идёт сеанс наблюдения");
+        }
         userRepository.deleteById(id);
         return true;
     }

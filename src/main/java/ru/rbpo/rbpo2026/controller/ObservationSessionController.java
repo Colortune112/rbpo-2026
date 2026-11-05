@@ -52,4 +52,24 @@ public class ObservationSessionController {
         }
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/{id}/start")
+    public ObservationSession start(@PathVariable Long id) {
+        return observationSessionService.start(id);
+    }
+
+    @PostMapping("/{id}/complete")
+    public ObservationSession complete(@PathVariable Long id) {
+        return observationSessionService.complete(id);
+    }
+
+    @PostMapping("/{id}/cancel")
+    public ObservationSession cancel(@PathVariable Long id) {
+        return observationSessionService.cancel(id);
+    }
+
+    @PostMapping("/{id}/reschedule")
+    public ObservationSession reschedule(@PathVariable Long id, @RequestBody ObservationSession newTime) {
+        return observationSessionService.reschedule(id, newTime);
+    }
 }
